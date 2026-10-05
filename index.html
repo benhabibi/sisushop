@@ -99,7 +99,7 @@ function openCart(){
   $('#cart').style.display='block';
   if(!cart.length){$('#cartBox').innerHTML='<p>سبد خرید خالیه.</p><button class="btn o" onclick="closeCart()">بستن</button>';return}
   $('#cartBox').innerHTML=`<h3>سبد خرید</h3>
-  ${cart.map((c,i)=>{const p=products.find(x=>x.id===c.id);return `<div class="row"><span>${esc(p.name)} ${c.size?'('+esc(c.size)+')':''} × ${c.qty.toLocaleString('fa-IR')}</span><button class="btn o" onclick="rmCart(${i})">حذف</button></div>`}).join('')}
+  ${cart.map((c,i)=>{const p=products.find(x=>x.id===c.id);return `<div class="row"><span>${esc(p.name)} ${c.size?'('+esc(c.size)+')':''}</span><span><button class="btn o" onclick="chg(${i},-1)">−</button> ${c.qty.toLocaleString('fa-IR')} <button class="btn o" onclick="chg(${i},1)">+</button> <button class="btn o" onclick="rmCart(${i})">حذف</button></span></div>`}).join('')}
   <p><b>جمع: ${fmt(total())}</b></p>
   <div class="sec">مبلغ رو به کارت <b dir="ltr">${esc(CFG.card)}</b> به نام <b>${esc(CFG.owner)}</b> واریز کن و بعد عکس رسید رو همین پایین بفرست.</div>
   <label>نام و نام خانوادگی</label><input id="fn">
@@ -125,6 +125,14 @@ async function doTrack(){
   `<div class="sec"><b>وضعیت: ${stLabel(o.status)}</b><br>${(o.items||[]).map(i=>esc(i.name)+(i.size?' '+esc(i.size):'')+' ×'+i.qty).join('، ')}<br>${fmt(o.total)}</div>`;
 }
 function closeCart(){$('#cart').style.display='none'}
+function chg(i,d){
+  const c=cart[i],p=products.find(x=>x.id===c.id);
+  const inCart=cart.filter(x=>x.id===c.id).reduce((a,x)=>a+x.qty,0);
+  if(d>0&&inCart>=p.stock){alert('موجودی بیشتر نیست');return}
+  c.qty+=d;
+  if(c.qty<=0)cart.splice(i,1);
+  drawShop();openCart();
+}
 function rmCart(i){cart.splice(i,1);drawShop();openCart()}
 async function sendOrder(){
   const name=$('#fn').value.trim(),phone=norm($('#fp').value),addr=$('#fa').value.trim(),f=$('#fr').files[0];
