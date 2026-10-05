@@ -79,7 +79,9 @@ function drawShop(){
     return `<div class="card"><img src="${esc(p.image_url)}" alt="">
     <div><b>${esc(p.name)}</b><span class="price">${fmt(p.price)}</span>
     ${sizes.length?`<select id="s${p.id}">${sizes.map(s=>`<option>${esc(s)}</option>`).join('')}</select>`:''}
-    ${p.stock>0?`<button class="btn" onclick="addCart(${p.id})">افزودن به سبد</button>`:`<button class="btn" disabled>ناموجود</button>`}
+    ${p.stock>0?`<span class="sm">موجودی: ${p.stock.toLocaleString('fa-IR')} عدد</span>
+    <select id="q${p.id}">${Array.from({length:Math.min(p.stock,30)},(_,k)=>`<option value="${k+1}">${(k+1).toLocaleString('fa-IR')} عدد</option>`).join('')}</select>
+    <button class="btn" onclick="addCart(${p.id})">افزودن به سبد</button>`:`<span class="sm">موجودی: صفر</span><button class="btn" disabled>ناموجود</button>`}
     </div></div>`}).join('')||'<p style="padding:16px">محصولی در این دسته نیست.</p>'}</div>
   <div class="modal" id="cart"><div class="box" id="cartBox"></div></div>
   <div class="modal" id="trk"><div class="box" id="trkBox"></div></div>`;
@@ -90,8 +92,9 @@ function addCart(id){
   const size=($('#s'+id)||{}).value||'';
   const ex=cart.find(c=>c.id===id&&c.size===size);
   const inCart=cart.filter(c=>c.id===id).reduce((a,c)=>a+c.qty,0);
-  if(inCart>=p.stock){alert('موجودی بیشتر نیست');return}
-  if(ex)ex.qty++;else cart.push({id,size,qty:1});
+  const q=+(($('#q'+id)||{}).value)||1;
+  if(inCart+q>p.stock){alert('فقط '+(p.stock-inCart).toLocaleString('fa-IR')+' عدد دیگه موجوده');return}
+  if(ex)ex.qty+=q;else cart.push({id,size,qty:q});
   drawShop();
 }
 function total(){return cart.reduce((a,c)=>a+products.find(p=>p.id===c.id).price*c.qty,0)}
